@@ -28,7 +28,7 @@ import ChatPopup from './ChatPopup';
 
 const DashboardLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(true);
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   const user = useSelector(state=>state.user)
   

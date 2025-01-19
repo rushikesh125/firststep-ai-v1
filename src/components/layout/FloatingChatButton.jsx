@@ -1,4 +1,5 @@
-const { MessageSquare } = require("lucide-react");
+import { MessageSquare } from "lucide-react";
+
 
 // Floating Chat Button Component
 const FloatingChatButton = ({ onClick, isOpen, isMinimized }) => (
