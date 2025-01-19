@@ -3,7 +3,7 @@ import { db } from "../config"
 
 export const submitAssessment = async ({uid,submissionData})=>{
     await setDoc(doc(db,`users/${uid}`),{
-        ...submissionData
+        assessment:{...submissionData}
     },{
         merge:true
     })

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 // import { useNavigate } from 'react-router-dom';
 import {
   Brain,
@@ -24,6 +24,8 @@ import { useRouter } from "next/navigation";
 import { submitAssessment } from "@/utils/firebase/assessment/write";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
+import { getUserAssessment } from "@/utils/firebase/assessment/read";
+import { formatObjectToText } from "@/utils/util";
 
 // Helper component for section navigation with fixed layout
 const SectionNav = ({
@@ -98,7 +100,7 @@ const SectionNav = ({
 };
 
 const Assessment = () => {
-  const user = useSelector(state=>state.user)
+  const user = useSelector((state) => state.user);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showProgress, setShowProgress] = useState(true);
@@ -300,6 +302,10 @@ const Assessment = () => {
     },
   ];
 
+  // useEffect(()=>{
+
+  // },[])
+
   const getCurrentSection = () => {
     const currentQ = questions[currentQuestion];
     return sections.find((s) => s.id === currentQ.section);
@@ -353,7 +359,7 @@ const Assessment = () => {
       },
     };
 
-    console.log("🥳 response:-\n", formattedResponse);
+    // console.log("🥳 response:-\n", formattedResponse);
 
     return formattedResponse;
   };
@@ -395,8 +401,11 @@ const Assessment = () => {
     setIsSubmitting(true);
     try {
       const submissionData = prepareSubmissionData();
-      await submitAssessment({uid:user?.uid,submissionData:submissionData})
-      toast.success("Assessment Submitted")
+      await submitAssessment({
+        uid: user?.uid,
+        submissionData: submissionData,
+      });
+      toast.success("Assessment Submitted");
       // await new Promise((resolve) => setTimeout(resolve, 1500));
       setShowCompletion(true);
     } catch (error) {
@@ -647,6 +656,22 @@ const Assessment = () => {
           )}
         </div>
       </div>
+      <button
+        onClick={() =>
+          (async () => {
+            try {
+              const res = await getUserAssessment({ uid: user?.uid });
+              // console.log("res:::", res);
+              console.log('foramted text::',formatObjectToText(res));
+            } catch (err) {
+              toast.error(err?.message);
+            }
+          })()
+        }
+        className="bg-red-400 rounded-lg px-4 py-2 text-white"
+      >
+        Get Assessment{" "}
+      </button>
 
       <div className="mt-6 bg-violet-50 rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
