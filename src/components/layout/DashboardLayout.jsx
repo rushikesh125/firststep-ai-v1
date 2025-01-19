@@ -4,29 +4,45 @@ import React, { useState, useRef, useEffect } from 'react';
 import { usePathname, useRouter, useSelectedLayoutSegment } from 'next/navigation';
 import { 
   Menu, 
-  Bell, 
   User, 
   Settings, 
   LogOut, 
-  ChevronDown, 
-  Shield, 
-  HelpCircle 
+  ChevronDown,
+  Shield,
+  HelpCircle,
+  MessageSquare,
+  Brain,
+  Maximize2,
+  Minimize2,
+  X,
+  Send,
+  Sparkles,
+  Bell
 } from 'lucide-react';
 import DashboardSidebar from './DashboardSidebar';
 import UserDropdown from '../UserDropdown';
 import { useSelector } from 'react-redux';
+import FloatingChatButton from './FloatingChatButton';
+import ChatPopup from './ChatPopup';
 
 
 const DashboardLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
   const user = useSelector(state=>state.user)
   
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname();  
 
-  
-
-  
+  const toggleChat = () => {
+    if (!isChatOpen) {
+      setIsChatOpen(true);
+      setIsChatMinimized(false);
+    } else {
+      setIsChatMinimized(!isChatMinimized);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -62,6 +78,21 @@ const DashboardLayout = ({ children }) => {
         <main className="p-6">
           {children}
         </main>
+
+        {/* Floating Chat Button */}
+        <FloatingChatButton
+          onClick={toggleChat}
+          isOpen={isChatOpen}
+          isMinimized={isChatMinimized}
+        />
+
+        {/* Chat Popup */}
+        <ChatPopup
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          isMinimized={isChatMinimized}
+          onMinimize={() => setIsChatMinimized(!isChatMinimized)}
+        />
       </div>
     </div>
   );
