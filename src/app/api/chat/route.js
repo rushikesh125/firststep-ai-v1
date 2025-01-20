@@ -4,7 +4,7 @@ const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
 
 const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash",
-  systemInstruction: "You are a helpful chatbot named FirstStep-AI. build by iHuman team and you help people to decide their career",
+  systemInstruction: "You are a helpful chatbot named FirstStep-AI. build by iHumans team and you help people to decide their career",
 });
 
 let chat = model.startChat({

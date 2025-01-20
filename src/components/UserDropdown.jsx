@@ -16,7 +16,7 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 const UserDropdown = ({userDetails}) => {
   const {displayName,email,uid,photoURL} = userDetails;
-  const [imgSrc,setImgSrc] = useState(photoURL?? "./images/user-img.jpg")
+  const [imgSrc,setImgSrc] = useState(photoURL?? "./../images/user-img.jpg")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);

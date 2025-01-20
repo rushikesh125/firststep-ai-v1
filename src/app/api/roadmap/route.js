@@ -1,10 +1,8 @@
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { db } from "../config";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import toast from "react-hot-toast";
 
-// Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
+
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 const promptTemplate = (assessmentData) => `
 Based on the following assessment data, provide career recommendations in a structured JSON format.
@@ -66,33 +64,23 @@ Provide recommendations in exactly this JSON structure:
 }
 `;
 
-export const getRecommendations = async ({ uid, assessmentData }) => {
+export async function POST(request) {
   try {
-    // // Fetch the user document which contains the assessment data
-    // const userDoc = await getDoc(doc(db, `users/${uid}`));
-    // console.log("💪🏼", userDoc)
+    const body = await request.json();
+    const { assessmentData } = body;
 
-    // if (!userDoc.exists()) {
-    //     throw new Error("User not found");
-    // }
+    if (!message) {
+      return new Response(JSON.stringify({ error: "Message is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-    // const userData = userDoc.data()?.assessment;
-    // console.log("🧠", userData)
-
-    // // Check if assessment data exists
-    // if (!userData) {
-    //     throw new Error("No assessment data found");
-    // }
-
-    // Get recommendations from Gemini
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     const prompt = promptTemplate(assessmentData);
-
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
-    // Try to parse the response text as JSON
     let recommendations = null;
     try {
       recommendations = JSON.parse(text);
@@ -102,53 +90,20 @@ export const getRecommendations = async ({ uid, assessmentData }) => {
       throw new Error("Failed to parse recommendations from AI response");
     }
 
-    console.log("Ai Response::", recommendations);
-
-    // Store recommendations back in the user document
-    await setDoc(
-      doc(db, `users/${uid}`),
-      {
-        recommendations,
-        recommendationsGeneratedAt: new Date().toISOString(),
-      },
-      { merge: true }
-    );
-    toast.success("Roadmap Inserted in DB Successfully");
-    console.log("🔥", recommendations);
-
-    return recommendations;
-  } catch (error) {
-    console.error("Error generating recommendations:", error);
-    throw error;
-  }
-};
-
-export const getRoadmap = async ({ uid }) => {
-  const res = await getDoc(doc(db, `users/${uid}`));
-  if (await res.exists()) {
-    return res.data()?.recommendations;
-  } else {
-    return null;
-    // throw new Error("Assessment is Not Submitted");
-  }
-};
-
-export const getAiRec = async ({ assessmentData }) => {
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ assessmentData: assessmentData }),
+    // Return the AI's response 
+    // as JSON
+    return new Response(JSON.stringify({ response: recommendations }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch AI response");
-    }
-
-    const data = await response.json();
   } catch (error) {
-    console.log(error);
+    console.error("Error:", error);
+    return new Response(
+      JSON.stringify({ error: "Failed to process request" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
-};
+}

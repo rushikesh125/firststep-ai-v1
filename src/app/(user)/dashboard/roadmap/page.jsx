@@ -131,8 +131,36 @@ const SkillCard = ({ skill, technologies, proficiencyLevel }) => (
   </div>
 );
 
+// const CourseCard = ({ course }) => (
+//   <div className="bg-white p-4 rounded-xl border border-gray-200">
+//     <div className="flex items-start justify-between">
+//       <div>
+//         <h4 className="font-medium text-gray-900">{course.name}</h4>
+//         <p className="text-sm text-gray-500">{course.platform}</p>
+//       </div>
+//       {course.certification && (
+//         <div className="p-1 bg-green-50 rounded">
+//           <Award className="w-4 h-4 text-green-600" />
+//         </div>
+//       )}
+//     </div>
+//     <div className="mt-3 space-y-2">
+//       <div className="flex items-center gap-2 text-sm text-gray-500">
+//         <Clock className="w-4 h-4" />
+//         <span>{course.duration}</span>
+//       </div>
+//       <div className="flex items-center gap-2 text-sm text-gray-500">
+//         <DollarSign className="w-4 h-4" />
+//         <span>{course.cost}</span>
+//       </div>
+//     </div>
+//   </div>
+// );
+
+// Safe list rendering component
+
 const CourseCard = ({ course }) => (
-  <div className="bg-white p-4 rounded-xl border border-gray-200">
+  <div className="bg-white p-4 rounded-xl border border-gray-200 hover:border-violet-200 transition-all group relative">
     <div className="flex items-start justify-between">
       <div>
         <h4 className="font-medium text-gray-900">{course.name}</h4>
@@ -144,6 +172,7 @@ const CourseCard = ({ course }) => (
         </div>
       )}
     </div>
+
     <div className="mt-3 space-y-2">
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <Clock className="w-4 h-4" />
@@ -154,10 +183,29 @@ const CourseCard = ({ course }) => (
         <span>{course.cost}</span>
       </div>
     </div>
+
+    {course.link && (
+      <a
+        href={course.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 flex items-center justify-between p-2 bg-violet-50 rounded-lg text-violet-600 hover:bg-violet-100 transition-colors group-hover:bg-violet-100"
+      >
+        <span className="text-sm font-medium">View Course</span>
+        <div className="flex items-center gap-1">
+          <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+            {course.platform}
+          </span>
+          <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+        </div>
+      </a>
+    )}
+
+    {/* Hover effect overlay */}
+    <div className="absolute inset-0 bg-violet-50 opacity-0 group-hover:opacity-10 rounded-xl transition-opacity pointer-events-none" />
   </div>
 );
 
-// Safe list rendering component
 const SafeList = ({ items = [], render }) => {
   if (!items || !Array.isArray(items)) return null;
   return items.map(render);
@@ -321,7 +369,7 @@ const Roadmap = () => {
           )}
 
           {/* Required Skills */}
-          {career?.subFields?.[0]?.requiredSkills?.technical && (
+          {/* {career?.subFields?.[0]?.requiredSkills?.technical && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">
                 Required Skills
@@ -333,10 +381,10 @@ const Roadmap = () => {
                 />
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Learning Resources */}
-          {career?.subFields?.[0]?.preparationResources?.courses && (
+          {/* {career?.subFields?.[0]?.preparationResources?.courses && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">
                 Recommended Courses
@@ -350,7 +398,119 @@ const Roadmap = () => {
                 />
               </div>
             </div>
+          )} */}
+
+
+{/* Required Skills Section */}
+{career?.subFields && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Required Skills
+              </h2>
+              <div className="space-y-6">
+                {career.subFields.map((subField, idx) => (
+                  <div key={idx} className="space-y-4">
+                    <h3 className="text-md font-medium text-violet-600 flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      {subField.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {subField.description}
+                    </p>
+
+                    {/* Technical Skills */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {subField.requiredSkills?.technical?.map(
+                        (skill, skillIdx) => (
+                          <SkillCard key={skillIdx} {...skill} />
+                        )
+                      )}
+                    </div>
+
+                    {/* Soft Skills */}
+                    {subField.requiredSkills?.soft?.length > 0 && (
+                      <div className="bg-violet-50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-violet-900 mb-2">
+                          Soft Skills
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {subField.requiredSkills.soft.map(
+                            (skill, skillIdx) => (
+                              <span
+                                key={skillIdx}
+                                className="px-3 py-1 bg-violet-100 text-violet-600 text-sm rounded-full"
+                              >
+                                {skill}
+                              </span>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Current Trends */}
+                    {subField.currentTrends?.length > 0 && (
+                      <div className="bg-violet-50/50 p-4 rounded-lg">
+                        <h4 className="text-sm font-medium text-violet-900 mb-2">
+                          Current Trends
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {subField.currentTrends.map((trend, trendIdx) => (
+                            <span
+                              key={trendIdx}
+                              className="px-3 py-1 bg-white text-violet-600 text-sm rounded-full border border-violet-100"
+                            >
+                              {trend}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
+
+          {/* Learning Resources Section */}
+          {career?.subFields && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Recommended Courses
+                </h2>
+                <div className="text-sm text-violet-600">
+                  {career.subFields.reduce(
+                    (total, subField) =>
+                      total +
+                      (subField.preparationResources?.courses?.length || 0),
+                    0
+                  )}{" "}
+                  courses available
+                </div>
+              </div>
+
+              {career.subFields.map((subField, subFieldIdx) => (
+                <div key={subFieldIdx} className="space-y-4">
+                  <h3 className="text-md font-medium text-violet-600 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    {subField.name}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {subField.preparationResources?.courses?.map(
+                      (course, courseIdx) => (
+                        <CourseCard
+                          key={`${subFieldIdx}-${courseIdx}`}
+                          course={course}
+                        />
+                      )
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
         </div>
 
         {/* Right Column - Additional Info */}
