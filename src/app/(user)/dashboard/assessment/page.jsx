@@ -27,8 +27,13 @@ import toast from "react-hot-toast";
 import { getUserAssessment } from "@/utils/firebase/assessment/read";
 import { formatObjectToText } from "@/utils/util";
 import CustomBtn from "@/components/CustomBtn";
-import { getRecommendations } from "@/utils/firebase/recommendations/read";
+import {
+  getRecommendations,
+  getRoadmap,
+} from "@/utils/firebase/recommendations/read";
 import { deleteAssessmentField } from "@/utils/firebase/assessment/delete";
+import Link from "next/link";
+import confetti from "canvas-confetti";
 
 // Helper component for section navigation with fixed layout
 // const SectionNav = ({
@@ -184,6 +189,7 @@ const Assessment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showError, setShowError] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [isRoadmapExits, setIsRoadmapExits] = useState(false);
   const router = useRouter();
 
   // Section definitions
@@ -234,6 +240,7 @@ const Assessment = () => {
         "Undergraduate",
         "Postgraduate",
         "Working Professional",
+        "Diploma",
       ],
     },
     {
@@ -247,6 +254,7 @@ const Assessment = () => {
         "Commerce",
         "Arts/Humanities",
         "Other",
+        "Not attempted",
       ],
     },
     {
@@ -261,6 +269,9 @@ const Assessment = () => {
         "BBA",
         "BA",
         "Other",
+        "MBBS",
+        "B. Arch",
+        "Not Pursuing Any Degree",
       ],
     },
     // Skills Section
@@ -302,6 +313,16 @@ const Assessment = () => {
         "Digital Marketing",
         "Project Management",
         "Research & Analysis",
+        "Artificial Intelligence/Machine Learning",
+        "Cybersecurity",
+        "Cloud Computing",
+        "Mobile App Development",
+        "Blockchain Technology",
+        "Internet of Things (IoT)",
+        "Game Development",
+        "DevOps/CI-CD",
+        "Augmented Reality/Virtual Reality (AR/VR)",
+        "Not intreseted in Tech"
       ],
     },
     {
@@ -315,6 +336,7 @@ const Assessment = () => {
         "Government Sector",
         "Research Institution",
         "Own Business",
+        "Contract Basis"
       ],
     },
     // Personal Traits Section
@@ -338,6 +360,7 @@ const Assessment = () => {
         "Leadership Roles",
         "Creative Freedom",
         "Structured Environment",
+        "Freelancing"
       ],
     },
     // Career Goals Section
@@ -366,6 +389,8 @@ const Assessment = () => {
         "Tier 2/3 Cities",
         "International Opportunities",
         "No Preference",
+        "Any",
+        "Remote Work"
       ],
     },
     {
@@ -384,6 +409,15 @@ const Assessment = () => {
       const res = await getUserAssessment({ uid: user?.uid });
       if (res) {
         setShowCompletion(true);
+      } else {
+        setShowCompletion(false);
+      }
+    })();
+
+    (async () => {
+      const res = await getRoadmap({ uid: user?.uid });
+      if (res) {
+        setIsRoadmapExits(true);
       } else {
         setShowCompletion(false);
       }
@@ -509,29 +543,30 @@ const Assessment = () => {
       });
       toast.success("Roadmap Generated Successfully");
       // setRoadmapData(text);
+      confetti()
+      // window.location.reload();
     } catch (err) {
       console.error("Error fetching recommendations:", err);
-      setError("Failed to load recommendations. Please try again later.");
+     toast.error("Failed to Generate Roadmap Try Again")
     } finally {
       setIsLoading(false);
     }
     // router.push("/dashboard/roadmap");
   };
 
-  const handleRetakeAssessment= async()=>{
-    setIsLoading(true)
+  const handleRetakeAssessment = async () => {
+    setIsLoading(true);
     try {
-      await deleteAssessmentField({uid:user?.uid})
-      toast.success("assessment Deleted ")
-      window.location.reload()
+      await deleteAssessmentField({ uid: user?.uid });
+      toast.success("assessment Deleted ");
+      window.location.reload();
     } catch (error) {
-      console.log('error',error);
-      toast.error("failed to delete assessment")
-    }finally{
-      setIsLoading(false)
-      
+      console.log("error", error);
+      toast.error("failed to delete assessment");
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
   const renderScale = (question) => (
     <div className="space-y-6">
       <div className="flex justify-between text-sm text-gray-500">
@@ -632,14 +667,24 @@ const Assessment = () => {
           </p>
 
           <div className="space-y-4">
-            <CustomBtn
-              isLoading={isLoading}
-              onClick={handleGenerateRoadMap}
-              className="w-full px-6 py-3 bg-gradient-to-r from-green-300 to-green-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
-            >
-              <MapPin className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              View Your Career Roadmap
-            </CustomBtn>
+            {isRoadmapExits ? (
+              <Link
+                href={`/dashboard/roadmap`}
+                className="w-full px-6 py-3 bg-gradient-to-r from-green-400 to-green-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
+              >
+                <MapPin className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                View Your Career Roadmap
+              </Link>
+            ) : (
+              <CustomBtn
+                isLoading={isLoading}
+                onClick={handleGenerateRoadMap}
+                className="w-full px-6 py-3 bg-gradient-to-r from-green-400 to-green-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
+              >
+                <MapPin className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                Generate Your Career Roadmap
+              </CustomBtn>
+            )}
             <CustomBtn
               isLoading={isLoading}
               onClick={handleRetakeAssessment}
@@ -778,22 +823,6 @@ const Assessment = () => {
           )}
         </div>
       </div>
-      <button
-        onClick={() =>
-          (async () => {
-            try {
-              const res = await getUserAssessment({ uid: user?.uid });
-              console.log("res:::", res);
-              console.log("foramted text::", formatObjectToText(await res));
-            } catch (err) {
-              toast.error(err?.message);
-            }
-          })()
-        }
-        className="bg-red-400 rounded-lg px-4 py-2 text-white"
-      >
-        Get Assessment{" "}
-      </button>
 
       <div className="mt-6 bg-violet-50 rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">

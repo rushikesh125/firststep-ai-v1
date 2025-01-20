@@ -15,4 +15,7 @@ export const deleteAssessmentField = async ({ uid }) => {
       await updateDoc(userDocRef, {
         assessment: deleteField(), 
       });
+      await updateDoc(userDocRef, {
+        recommendations: deleteField(), 
+      });
   };

@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, Timestamp } from "firebase/firestore";
 import { db } from "../config";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import toast from "react-hot-toast";
@@ -109,7 +109,7 @@ export const getRecommendations = async ({ uid, assessmentData }) => {
       doc(db, `users/${uid}`),
       {
         recommendations,
-        recommendationsGeneratedAt: new Date().toISOString(),
+       generatedAt: Timestamp.now(),
       },
       { merge: true }
     );
@@ -133,22 +133,3 @@ export const getRoadmap = async ({ uid }) => {
   }
 };
 
-export const getAiRec = async ({ assessmentData }) => {
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ assessmentData: assessmentData }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch AI response");
-    }
-
-    const data = await response.json();
-  } catch (error) {
-    console.log(error);
-  }
-};

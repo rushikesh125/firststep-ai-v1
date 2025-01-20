@@ -1,18 +1,22 @@
+"use client"
 import React from 'react';
+import Link from 'next/link';
 import { BarChart2, Users, Target, Award, Clock, ArrowRight, TrendingUp } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 const Dashboard = () => {
+  const user = useSelector(state=>state.user)
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back, Rahul! 👋</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.displayName  }👋</h1>
           <p className="text-gray-600">Here's what's happening with your career journey.</p>
         </div>
-        <button className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors">
+        <Link href={`/dashboard/assessment`} className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors">
           Take Assessment
-        </button>
+        </Link>
       </div>
 
       {/* Stats Overview */}
