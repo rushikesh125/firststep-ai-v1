@@ -26,8 +26,80 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { getUserAssessment } from "@/utils/firebase/assessment/read";
 import { formatObjectToText } from "@/utils/util";
+import CustomBtn from "@/components/CustomBtn";
+import { getRecommendations } from "@/utils/firebase/recommendations/read";
 
 // Helper component for section navigation with fixed layout
+// const SectionNav = ({
+//   sections,
+//   currentSection,
+//   currentQuestion,
+//   questions,
+//   answers,
+// }) => {
+//   return (
+//     <div className="grid grid-cols-5 gap-2 mb-6 bg-white rounded-xl p-4 shadow-sm">
+//       {sections.map((section, idx) => {
+//         const sectionQuestions = questions.filter(
+//           (q) => q.section === section.id
+//         );
+//         const isActive = currentSection.id === section.id;
+//         const isCompleted = sectionQuestions.every((q) => {
+//           const questionIndex = questions.findIndex(
+//             (quest) => quest.id === q.id
+//           );
+//           const answer = answers[questionIndex];
+//           if (!answer) return false;
+//           if (q.type === "text") return answer.trim().length >= 10;
+//           if (q.isMultiSelect)
+//             return Array.isArray(answer) && answer.length > 0;
+//           return true;
+//         });
+
+//         return (
+//           <div
+//             key={section.id}
+//             className={`flex flex-col items-center px-4 py-2 rounded-lg transition-all
+//               ${isActive ? "bg-violet-50" : ""}`}
+//           >
+//             <div
+//               className={`flex items-center gap-2 ${
+//                 isActive ? "text-violet-600" : "text-gray-500"
+//               }`}
+//             >
+//               <section.icon className="w-5 h-5" />
+//               <span className="text-sm font-medium">{section.title}</span>
+//             </div>
+//             <div className="mt-2 w-full h-1 rounded-full bg-gray-100">
+//               <div
+//                 className={`h-full rounded-full transition-all ${
+//                   isCompleted
+//                     ? "bg-green-500"
+//                     : isActive
+//                     ? "bg-violet-600"
+//                     : "bg-gray-200"
+//                 }`}
+//                 style={{
+//                   width: isCompleted
+//                     ? "100%"
+//                     : isActive
+//                     ? `${
+//                         ((currentQuestion -
+//                           questions.findIndex((q) => q.section === section.id) +
+//                           1) /
+//                           sectionQuestions.length) *
+//                         100
+//                       }%`
+//                     : "0%",
+//                 }}
+//               />
+//             </div>
+//           </div>
+//         );
+//       })}
+//     </div>
+//   );
+// };
 const SectionNav = ({
   sections,
   currentSection,
@@ -36,7 +108,7 @@ const SectionNav = ({
   answers,
 }) => {
   return (
-    <div className="grid grid-cols-5 gap-2 mb-6 bg-white rounded-xl p-4 shadow-sm">
+    <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-6 bg-white rounded-xl p-2 sm:p-4 shadow-sm">
       {sections.map((section, idx) => {
         const sectionQuestions = questions.filter(
           (q) => q.section === section.id
@@ -57,16 +129,18 @@ const SectionNav = ({
         return (
           <div
             key={section.id}
-            className={`flex flex-col items-center px-4 py-2 rounded-lg transition-all
+            className={`flex flex-col items-center px-2 sm:px-4 py-2 rounded-lg transition-all
               ${isActive ? "bg-violet-50" : ""}`}
           >
             <div
-              className={`flex items-center gap-2 ${
+              className={`flex flex-col sm:flex-row items-center gap-1 sm:gap-2 ${
                 isActive ? "text-violet-600" : "text-gray-500"
               }`}
             >
               <section.icon className="w-5 h-5" />
-              <span className="text-sm font-medium">{section.title}</span>
+              <span className="text-xs sm:text-sm font-medium text-center sm:text-left hidden sm:block">
+                {section.title}
+              </span>
             </div>
             <div className="mt-2 w-full h-1 rounded-full bg-gray-100">
               <div
@@ -101,6 +175,7 @@ const SectionNav = ({
 
 const Assessment = () => {
   const user = useSelector((state) => state.user);
+  const [isLoading,setIsLoading] = useState(false)
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showProgress, setShowProgress] = useState(true);
@@ -301,10 +376,15 @@ const Assessment = () => {
       placeholder: "Share your career aspirations, goals, and dreams...",
     },
   ];
-
-  // useEffect(()=>{
-
-  // },[])
+  (async () => {
+    console.log("showCompletion", showCompletion);
+    const res = await getUserAssessment({uid:user?.uid})
+    if (res) {
+      setShowCompletion(true);
+    }
+  })();
+  // useEffect(
+  // }, [user]);
 
   const getCurrentSection = () => {
     const currentQ = questions[currentQuestion];
@@ -415,8 +495,20 @@ const Assessment = () => {
     }
   };
 
-  const handleViewRoadmap = () => {
-    router.push("/dashboard/roadmap");
+  const handleGenerateRoadMap = async() => {
+    try {
+      setIsLoading(true);
+      const assessmentData =await getUserAssessment({uid:user?.uid})
+      const text = await getRecommendations({ uid: user.uid,assessmentData:assessmentData });
+      toast.success("Roadmap Generated Successfully")
+      // setRoadmapData(text);
+    } catch (err) {
+      console.error('Error fetching recommendations:', err);
+      setError('Failed to load recommendations. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+    // router.push("/dashboard/roadmap");
   };
 
   const renderScale = (question) => (
@@ -519,13 +611,14 @@ const Assessment = () => {
           </p>
 
           <div className="space-y-4">
-            <button
-              onClick={handleViewRoadmap}
+            <CustomBtn
+            isLoading={isLoading}
+              onClick={handleGenerateRoadMap}
               className="w-full px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
             >
               <MapPin className="w-5 h-5 group-hover:scale-110 transition-transform" />
               View Your Career Roadmap
-            </button>
+            </CustomBtn>
 
             <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
               <CheckCircle className="w-4 h-4 text-green-500" />
@@ -662,7 +755,7 @@ const Assessment = () => {
             try {
               const res = await getUserAssessment({ uid: user?.uid });
               console.log("res:::", res);
-              console.log('foramted text::',formatObjectToText(await res));
+              console.log("foramted text::", formatObjectToText(await res));
             } catch (err) {
               toast.error(err?.message);
             }
