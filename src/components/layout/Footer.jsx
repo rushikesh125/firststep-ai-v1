@@ -94,7 +94,7 @@ const Footer = () => {
             <div className="flex items-center gap-2 text-gray-600 text-sm">
               <span>Made with</span>
               <Heart className="w-4 h-4 text-red-500 fill-current" />
-              <span>for students worldwide</span>
+              <span>By iHumans Team</span>
             </div>
             <div className="flex gap-6">
               {footerLinks.legal.map((link) => (
