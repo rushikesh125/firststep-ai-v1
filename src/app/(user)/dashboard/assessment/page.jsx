@@ -661,8 +661,8 @@ const Assessment = () => {
           (async () => {
             try {
               const res = await getUserAssessment({ uid: user?.uid });
-              // console.log("res:::", res);
-              console.log('foramted text::',formatObjectToText(res));
+              console.log("res:::", res);
+              console.log('foramted text::',formatObjectToText(await res));
             } catch (err) {
               toast.error(err?.message);
             }
