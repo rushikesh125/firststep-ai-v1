@@ -28,6 +28,7 @@ import { getUserAssessment } from "@/utils/firebase/assessment/read";
 import { formatObjectToText } from "@/utils/util";
 import CustomBtn from "@/components/CustomBtn";
 import { getRecommendations } from "@/utils/firebase/recommendations/read";
+import { deleteAssessmentField } from "@/utils/firebase/assessment/delete";
 
 // Helper component for section navigation with fixed layout
 // const SectionNav = ({
@@ -175,7 +176,7 @@ const SectionNav = ({
 
 const Assessment = () => {
   const user = useSelector((state) => state.user);
-  const [isLoading,setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showProgress, setShowProgress] = useState(true);
@@ -376,15 +377,18 @@ const Assessment = () => {
       placeholder: "Share your career aspirations, goals, and dreams...",
     },
   ];
-  (async () => {
-    console.log("showCompletion", showCompletion);
-    const res = await getUserAssessment({uid:user?.uid})
-    if (res) {
-      setShowCompletion(true);
-    }
-  })();
-  // useEffect(
-  // }, [user]);
+
+  useEffect(() => {
+    (async () => {
+      console.log("showCompletion", showCompletion);
+      const res = await getUserAssessment({ uid: user?.uid });
+      if (res) {
+        setShowCompletion(true);
+      } else {
+        setShowCompletion(false);
+      }
+    })();
+  }, [user]);
 
   const getCurrentSection = () => {
     const currentQ = questions[currentQuestion];
@@ -495,22 +499,39 @@ const Assessment = () => {
     }
   };
 
-  const handleGenerateRoadMap = async() => {
+  const handleGenerateRoadMap = async () => {
     try {
       setIsLoading(true);
-      const assessmentData =await getUserAssessment({uid:user?.uid})
-      const text = await getRecommendations({ uid: user.uid,assessmentData:assessmentData });
-      toast.success("Roadmap Generated Successfully")
+      const assessmentData = await getUserAssessment({ uid: user?.uid });
+      const text = await getRecommendations({
+        uid: user.uid,
+        assessmentData: assessmentData,
+      });
+      toast.success("Roadmap Generated Successfully");
       // setRoadmapData(text);
     } catch (err) {
-      console.error('Error fetching recommendations:', err);
-      setError('Failed to load recommendations. Please try again later.');
+      console.error("Error fetching recommendations:", err);
+      setError("Failed to load recommendations. Please try again later.");
     } finally {
       setIsLoading(false);
     }
     // router.push("/dashboard/roadmap");
   };
 
+  const handleRetakeAssessment= async()=>{
+    setIsLoading(true)
+    try {
+      await deleteAssessmentField({uid:user?.uid})
+      toast.success("assessment Deleted ")
+      window.location.reload()
+    } catch (error) {
+      console.log('error',error);
+      toast.error("failed to delete assessment")
+    }finally{
+      setIsLoading(false)
+      
+    }
+  }
   const renderScale = (question) => (
     <div className="space-y-6">
       <div className="flex justify-between text-sm text-gray-500">
@@ -612,12 +633,20 @@ const Assessment = () => {
 
           <div className="space-y-4">
             <CustomBtn
-            isLoading={isLoading}
+              isLoading={isLoading}
               onClick={handleGenerateRoadMap}
-              className="w-full px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
+              className="w-full px-6 py-3 bg-gradient-to-r from-green-300 to-green-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
             >
               <MapPin className="w-5 h-5 group-hover:scale-110 transition-transform" />
               View Your Career Roadmap
+            </CustomBtn>
+            <CustomBtn
+              isLoading={isLoading}
+              onClick={handleRetakeAssessment}
+              className="w-full px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group"
+            >
+              <MapPin className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              Retake Assessment
             </CustomBtn>
 
             <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
