@@ -72,7 +72,7 @@ const Login = () => {
       };
       await createUser({ uid: user?.uid, user: user });
       toast.success("Login Success");
-      router.back();
+      router.push('/dashboard');
     } catch (error) {
       console.error("Login failed:", error);
       toast.error(error?.message);
