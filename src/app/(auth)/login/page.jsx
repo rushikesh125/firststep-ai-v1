@@ -49,7 +49,7 @@ const Login = () => {
       // await new Promise((resolve) => setTimeout(resolve, 3000));
       await signInWithEmailAndPassword(auth, formData.email, formData.password);
       toast.success("Logged In Successfully");
-      router.back();
+      router.push('/dashboard');
     } catch (error) {
       console.error("Login failed:", error);
       toast.error(error?.message)
