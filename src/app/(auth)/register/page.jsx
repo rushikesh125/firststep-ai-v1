@@ -90,7 +90,7 @@ const Register = () => {
     if(user){
       toast.success("Already Loggedin")
       // console.log(user)
-      router.push(`dashboard`);
+      router.push(`/dashboard`);
     }
   },[user,router])
   return (
