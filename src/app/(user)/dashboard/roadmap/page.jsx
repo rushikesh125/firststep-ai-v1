@@ -33,7 +33,7 @@ import {
 import { getUserAssessment } from "@/utils/firebase/assessment/read";
 import toast from "react-hot-toast";
 
-// Reusable Components
+// Reusable Components (keeping all as they are)
 const MatchScoreBadge = ({ score }) => (
   <div className="flex items-center gap-2 bg-violet-50 text-violet-700 px-4 py-2 rounded-full">
     <Star className="w-5 h-5 fill-violet-500 text-violet-500" />
@@ -131,34 +131,6 @@ const SkillCard = ({ skill, technologies, proficiencyLevel }) => (
   </div>
 );
 
-// const CourseCard = ({ course }) => (
-//   <div className="bg-white p-4 rounded-xl border border-gray-200">
-//     <div className="flex items-start justify-between">
-//       <div>
-//         <h4 className="font-medium text-gray-900">{course.name}</h4>
-//         <p className="text-sm text-gray-500">{course.platform}</p>
-//       </div>
-//       {course.certification && (
-//         <div className="p-1 bg-green-50 rounded">
-//           <Award className="w-4 h-4 text-green-600" />
-//         </div>
-//       )}
-//     </div>
-//     <div className="mt-3 space-y-2">
-//       <div className="flex items-center gap-2 text-sm text-gray-500">
-//         <Clock className="w-4 h-4" />
-//         <span>{course.duration}</span>
-//       </div>
-//       <div className="flex items-center gap-2 text-sm text-gray-500">
-//         <DollarSign className="w-4 h-4" />
-//         <span>{course.cost}</span>
-//       </div>
-//     </div>
-//   </div>
-// );
-
-// Safe list rendering component
-
 const CourseCard = ({ course }) => (
   <div className="bg-white p-4 rounded-xl border border-gray-200 hover:border-violet-200 transition-all group relative">
     <div className="flex items-start justify-between">
@@ -201,7 +173,6 @@ const CourseCard = ({ course }) => (
       </a>
     )}
 
-    {/* Hover effect overlay */}
     <div className="absolute inset-0 bg-violet-50 opacity-0 group-hover:opacity-10 rounded-xl transition-opacity pointer-events-none" />
   </div>
 );
@@ -211,7 +182,6 @@ const SafeList = ({ items = [], render }) => {
   return items.map(render);
 };
 
-// Loading Component
 const LoadingState = () => (
   <div className="flex items-center justify-center min-h-[400px]">
     <div className="text-center space-y-4">
@@ -226,49 +196,24 @@ const Roadmap = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [roadmapData, setRoadmapData] = useState(null);
-  const [isClient, setIsClient] = useState(false);
 
   const user = useSelector((state) => state.user);
 
-  // // Set client-side flag
-  // useEffect(() => {
-  //   setIsClient(true);
-  // }, []);
-
-  // Fetch recommendations
-  // useEffect(() => {
-  //   const fetchRecommendations = async () => {
-  //     if (!isClient || !user?.uid) return;
-
-  //     try {
-  //       setIsLoading(true);
-  //       const assessmentData =await getUserAssessment({uid:user?.uid})
-  //       const text = await getRecommendations({ uid: user.uid,assessmentData:assessmentData });
-  //       toast.success("Roadmap Generated Successfully")
-  //       setRoadmapData(text);
-  //     } catch (err) {
-  //       console.error('Error fetching recommendations:', err);
-  //       setError('Failed to load recommendations. Please try again later.');
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   fetchRecommendations();
-  // }, [isClient, user?.uid]);
   useEffect(() => {
     (async () => {
-      setIsLoading(true)
+      if (!user?.uid) return;
+      
+      setIsLoading(true);
       try {
-        const res = await getRoadmap({ uid: user?.uid });
-        setRoadmapData(res);
-        console.log("res:::", res);
+        const res = await getRoadmap({ uid: user.uid });
+        // Adjust for the nested career_recommendations structure
+        setRoadmapData(res?.career_recommendations || res);
       } catch (error) {
-        console.log('error',error);
-        toast.error(error)
-        setError("roadmap is not generated please generate roadmap form assessment")
-      }finally{
-        setIsLoading(false)
+        console.log('error', error);
+        toast.error(String(error));
+        setError("Roadmap is not generated. Please generate roadmap from assessment.");
+      } finally {
+        setIsLoading(false);
       }
     })();
   }, [user]);
@@ -288,7 +233,7 @@ const Roadmap = () => {
     );
   }
 
-  if (!roadmapData || !roadmapData.primaryCareerPaths?.length) {
+  if (!roadmapData || !roadmapData?.primaryCareerPaths?.length) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
@@ -301,6 +246,7 @@ const Roadmap = () => {
     );
   }
 
+  // Access the first career path correctly
   const career = roadmapData.primaryCareerPaths[0];
   const { additionalInsights } = roadmapData;
 
@@ -368,41 +314,8 @@ const Roadmap = () => {
             </div>
           )}
 
-          {/* Required Skills */}
-          {/* {career?.subFields?.[0]?.requiredSkills?.technical && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Required Skills
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SafeList
-                  items={career.subFields[0].requiredSkills.technical}
-                  render={(skill, idx) => <SkillCard key={idx} {...skill} />}
-                />
-              </div>
-            </div>
-          )} */}
-
-          {/* Learning Resources */}
-          {/* {career?.subFields?.[0]?.preparationResources?.courses && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Recommended Courses
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SafeList
-                  items={career.subFields[0].preparationResources.courses}
-                  render={(course, idx) => (
-                    <CourseCard key={idx} course={course} />
-                  )}
-                />
-              </div>
-            </div>
-          )} */}
-
-
-{/* Required Skills Section */}
-{career?.subFields && (
+          {/* Required Skills Section */}
+          {career?.subFields && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">
                 Required Skills
@@ -419,13 +332,16 @@ const Roadmap = () => {
                     </p>
 
                     {/* Technical Skills */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {subField.requiredSkills?.technical?.map(
-                        (skill, skillIdx) => (
-                          <SkillCard key={skillIdx} {...skill} />
-                        )
-                      )}
-                    </div>
+                    {subField.requiredSkills?.technical?.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <SafeList
+                          items={subField.requiredSkills.technical}
+                          render={(skill, skillIdx) => (
+                            <SkillCard key={skillIdx} {...skill} />
+                          )}
+                        />
+                      </div>
+                    )}
 
                     {/* Soft Skills */}
                     {subField.requiredSkills?.soft?.length > 0 && (
@@ -434,16 +350,17 @@ const Roadmap = () => {
                           Soft Skills
                         </h4>
                         <div className="flex flex-wrap gap-2">
-                          {subField.requiredSkills.soft.map(
-                            (skill, skillIdx) => (
+                          <SafeList
+                            items={subField.requiredSkills.soft}
+                            render={(skill, skillIdx) => (
                               <span
                                 key={skillIdx}
                                 className="px-3 py-1 bg-violet-100 text-violet-600 text-sm rounded-full"
                               >
                                 {skill}
                               </span>
-                            )
-                          )}
+                            )}
+                          />
                         </div>
                       </div>
                     )}
@@ -455,14 +372,17 @@ const Roadmap = () => {
                           Current Trends
                         </h4>
                         <div className="flex flex-wrap gap-2">
-                          {subField.currentTrends.map((trend, trendIdx) => (
-                            <span
-                              key={trendIdx}
-                              className="px-3 py-1 bg-white text-violet-600 text-sm rounded-full border border-violet-100"
-                            >
-                              {trend}
-                            </span>
-                          ))}
+                          <SafeList
+                            items={subField.currentTrends}
+                            render={(trend, trendIdx) => (
+                              <span
+                                key={trendIdx}
+                                className="px-3 py-1 bg-white text-violet-600 text-sm rounded-full border border-violet-100"
+                              >
+                                {trend}
+                              </span>
+                            )}
+                          />
                         </div>
                       </div>
                     )}
@@ -496,21 +416,23 @@ const Roadmap = () => {
                     <BookOpen className="w-4 h-4" />
                     {subField.name}
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {subField.preparationResources?.courses?.map(
-                      (course, courseIdx) => (
-                        <CourseCard
-                          key={`${subFieldIdx}-${courseIdx}`}
-                          course={course}
-                        />
-                      )
-                    )}
-                  </div>
+                  {subField.preparationResources?.courses?.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <SafeList
+                        items={subField.preparationResources.courses}
+                        render={(course, courseIdx) => (
+                          <CourseCard
+                            key={`${subFieldIdx}-${courseIdx}`}
+                            course={course}
+                          />
+                        )}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
-
         </div>
 
         {/* Right Column - Additional Info */}
@@ -522,39 +444,41 @@ const Roadmap = () => {
                 <p className="text-gray-600">
                   {career.industryOutlook.futureProspects}
                 </p>
-                <div className="space-y-4">
-                  <SafeList
-                    items={career.industryOutlook.topRecruiters}
-                    render={(recruiter, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-white p-4 rounded-lg border border-gray-200"
-                      >
-                        <h4 className="font-medium text-gray-900 mb-2">
-                          {recruiter.type}
-                        </h4>
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap gap-2">
-                            <SafeList
-                              items={recruiter.companies}
-                              render={(company, idx) => (
-                                <span
-                                  key={idx}
-                                  className="text-sm text-gray-600"
-                                >
-                                  {company}
-                                </span>
-                              )}
-                            />
+                {career.industryOutlook.topRecruiters?.length > 0 && (
+                  <div className="space-y-4">
+                    <SafeList
+                      items={career.industryOutlook.topRecruiters}
+                      render={(recruiter, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-white p-4 rounded-lg border border-gray-200"
+                        >
+                          <h4 className="font-medium text-gray-900 mb-2">
+                            {recruiter.type}
+                          </h4>
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap gap-2">
+                              <SafeList
+                                items={recruiter.companies}
+                                render={(company, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="text-sm text-gray-600"
+                                  >
+                                    {company}
+                                  </span>
+                                )}
+                              />
+                            </div>
+                            <p className="text-sm text-violet-600 font-medium">
+                              {recruiter.averagePackage}
+                            </p>
                           </div>
-                          <p className="text-sm text-violet-600 font-medium">
-                            {recruiter.averagePackage}
-                          </p>
                         </div>
-                      </div>
-                    )}
-                  />
-                </div>
+                      )}
+                    />
+                  </div>
+                )}
               </div>
             </AccordionItem>
           )}
@@ -577,60 +501,25 @@ const Roadmap = () => {
                     </p>
                   </div>
                 </div>
-                <div className="bg-violet-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-violet-900 mb-2">Pro Tips</h4>
-                  <ul className="space-y-2">
-                    <SafeList
-                      items={additionalInsights.workLifeBalance.tips}
-                      render={(tip, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-center gap-2 text-sm text-violet-700"
-                        >
-                          <Sparkles className="w-4 h-4" />
-                          <span>{tip}</span>
-                        </li>
-                      )}
-                    />
-                  </ul>
-                </div>
-              </div>
-            </AccordionItem>
-          )}
-
-          {/* Higher Education */}
-          {additionalInsights?.higherEducation?.options && (
-            <AccordionItem title="Higher Education" icon={GraduationCap}>
-              <div className="space-y-4">
-                <SafeList
-                  items={additionalInsights.higherEducation.options}
-                  render={(option, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-white p-4 rounded-lg border border-gray-200"
-                    >
-                      <h4 className="font-medium text-gray-900 mb-2">
-                        {option.degree}
-                      </h4>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <p>Duration: {option.duration || "N/A"}</p>
-                        <p>Cost: {option.averageCost || "N/A"}</p>
-                        {option.universities && (
-                          <div>
-                            <p className="text-gray-500">Top Universities:</p>
-                            <p>{option.universities.join(", ")}</p>
-                          </div>
+                {additionalInsights.workLifeBalance.tips?.length > 0 && (
+                  <div className="bg-violet-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-violet-900 mb-2">Pro Tips</h4>
+                    <ul className="space-y-2">
+                      <SafeList
+                        items={additionalInsights.workLifeBalance.tips}
+                        render={(tip, idx) => (
+                          <li
+                            key={idx}
+                            className="flex items-center gap-2 text-sm text-violet-700"
+                          >
+                            <Sparkles className="w-4 h-4" />
+                            <span>{tip}</span>
+                          </li>
                         )}
-                        {option.entranceExams && (
-                          <div>
-                            <p className="text-gray-500">Required Exams:</p>
-                            <p>{option.entranceExams.join(", ")}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                />
+                      />
+                    </ul>
+                  </div>
+                )}
               </div>
             </AccordionItem>
           )}
